@@ -1,0 +1,26 @@
+plugins {
+    id 'maven-publish'
+}
+
+group project.group
+
+subprojects {
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                groupId project.group
+                artifactId project.name
+            }
+        }
+        repositories {
+            maven {
+                url project.url
+                credentials {
+                    username project.sonatypeUsername
+                    password project.sonatypePassword
+                }
+            }
+        }
+    }
+
+}
