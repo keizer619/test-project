@@ -17,6 +17,8 @@ jobs:
           echo "Assigned labels: " ${{ join(github.event.issue.labels.*.name) }}
           echo "Assignees: " ${{ join(github.event.issue.assignees.*.login) }}
     - name: Google Chat Notification
+      env:
+          TITLE: ${{ github.event.issue.title }}
       run: |
           curl --location --request POST '${{ secrets.INTERNAL_SUPPORT_ALERT }}' \
           --header 'Content-Type: application/json' \
@@ -39,7 +41,7 @@ jobs:
                                    {
                                      "keyValue": {
                                           "topLabel": "Title",
-                                          "content": "${{ github.event.issue.title }}"
+                                          "content": "$TITLE"
                                       }
                                    },
                                    {
