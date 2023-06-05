@@ -41,7 +41,7 @@ jobs:
                                    {
                                      "keyValue": {
                                           "topLabel": "Title",
-                                          "content": "$TITLE"
+                                          "content": "${{ TITLE }}"
                                       }
                                    },
                                    {
