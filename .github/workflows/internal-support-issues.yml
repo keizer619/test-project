@@ -20,7 +20,7 @@ jobs:
       env:
           TITLE: ${{ github.event.issue.title }}
       run: |
-          TITLE=${TITLE//\'/}
+          TITLE=${TITLE//\'/\u0027}
           TITLE=${TITLE//\"/}
           curl --location --request POST '${{ secrets.INTERNAL_SUPPORT_ALERT }}' \
           --header 'Content-Type: application/json' \
