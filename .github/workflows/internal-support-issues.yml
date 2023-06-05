@@ -22,7 +22,7 @@ jobs:
       run: |
           TITLE=${TITLE//\'/}
           TITLE=${TITLE//\"/}
-          curl -d --location --request POST '${{ secrets.INTERNAL_SUPPORT_ALERT }}' \
+          curl --location --request POST '${{ secrets.INTERNAL_SUPPORT_ALERT }}' \
           --header 'Content-Type: application/json' \
           --data-raw '{
               "cards": [
