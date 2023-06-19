@@ -6,8 +6,8 @@ on:
   pull_request:
   workflow_dispatch:
 jobs:
-  test_linux:
-    name: Test action on Ubuntu
+  test_latest:
+    name: Test latest version on Ubuntu
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -15,5 +15,16 @@ jobs:
         name: Test the action.
         with:
           version: latest
+      - run: bal version
+      - run: bal run hello.bal
+  test_specific:
+    name: Test specific version on Ubuntu
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: keizer619/setup-ballerina@main
+        name: Test the action.
+        with:
+          version: 2201.3.0
       - run: bal version
       - run: bal run hello.bal
