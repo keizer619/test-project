@@ -1,0 +1,19 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ballerina-platform/setup-ballerina@v1.1.0
+        name: Install Ballerina
+        with:
+          version: 2201.7.0
+      - run: bal tool pull edi
+      - run: bal edi
