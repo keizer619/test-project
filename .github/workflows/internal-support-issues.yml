@@ -16,65 +16,70 @@ jobs:
           echo "Issue url: ${{ github.event.issue.html_url }}"
           echo "Assigned labels: " ${{ join(github.event.issue.labels.*.name) }}
           echo "Assignees: " ${{ join(github.event.issue.assignees.*.login) }}
+    - name: Install jq
+      run: sudo apt-get install jq -y
     - name: Google Chat Notification
       env:
           TITLE: ${{ github.event.issue.title }}
       run: |
-          TITLE=${TITLE//\'/\u0027}
-          TITLE="${TITLE//\"/\u0022}"
-          curl --location --request POST '${{ secrets.INTERNAL_SUPPORT_ALERT }}' \
-          --header 'Content-Type: application/json' \
-          --data-raw '{
-              "cards": [
-                  {
-                      "header": {
-                          "title": "Issue Tracker",
-                          "subtitle": "Issue No: #${{ github.event.issue.number }}"
-                      },
-                      "sections": [
-                          {
-                              "widgets": [
-                                  {
-                                     "keyValue": {
-                                          "topLabel": "Creator",
-                                          "content": "${{ github.event.issue.user.login }}"
-                                      },
-                                   },
-                                   {
-                                     "keyValue": {
-                                          "topLabel": "Title",
-                                          "content": "'"$TITLE"'"
-                                      }
-                                   },
-                                   {
-                                     "keyValue": {
-                                          "topLabel": "Assigned Lables",
-                                          "content": "- ${{ join(github.event.issue.labels.*.name) }}"
-                                      }
-                                   },
-                                   {
-                                     "keyValue": {
-                                          "topLabel": "Assignees",
-                                          "content": "- ${{ join(github.event.issue.assignees.*.login) }}"
-                                      }
-                                   },
-                                   {
-                                      "buttons": [
-                                          {
-                                              "textButton": {
-                                                  "text": "OPEN ISSUE",
-                                                  "onClick": {
-                                                      "openLink": {
-                                                          "url": "${{ github.event.issue.html_url }}"
-                                                      }
-                                                  }
-                                              }
-                                          }
-                                      ]
-                                  }
-                              ]
+          PAYLOAD=$(jq -n --arg title "$TITLE" --arg login "${{ github.event.issue.user.login }}" --argjson labels "${{ github.event.issue.labels }}" --argjson assignees "${{ github.event.issue.assignees }}" '
+          {
+          cards: [
+            {
+              header: {
+                title: "Issue Tracker",
+                subtitle: "Issue No: #\($number)"
+              },
+              sections: [
+                {
+                  widgets: [
+                    {
+                      keyValue: {
+                        topLabel: "Creator",
+                        content: $login
+                      }
+                    },
+                    {
+                      keyValue: {
+                        topLabel: "Title",
+                        content: $title
+                      }
+                    },
+                    {
+                      keyValue: {
+                        topLabel: "Assigned Labels",
+                        content: ($labels | map("- " + .name) | join("\n"))
+                      }
+                    },
+                    {
+                      keyValue: {
+                        topLabel: "Assignees",
+                        content: ($assignees | map("- " + .login) | join("\n"))
+                      }
+                    },
+                    {
+                      buttons: [
+                        {
+                          textButton: {
+                            text: "OPEN ISSUE",
+                            onClick: {
+                              openLink: {
+                                url: $html_url
+                              }
+                            }
                           }
+                        }
                       ]
-                  }
+                    }
+                  ]
+                }
               ]
-          }'
+            }
+          ]
+          }')
+  
+          curl --location --request POST '${{ secrets.INTERNAL_SUPPORT_ALERT }}' \
+            --header 'Content-Type: application/json' \
+            --data-raw "$PAYLOAD"
+                    ]
+                }'
