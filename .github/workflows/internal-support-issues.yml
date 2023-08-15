@@ -16,55 +16,53 @@ jobs:
           echo "Issue url: ${{ github.event.issue.html_url }}"
           echo "Assigned labels: " ${{ join(github.event.issue.labels.*.name) }}
           echo "Assignees: " ${{ join(github.event.issue.assignees.*.login) }}
-    - name: Install jq
-      run: sudo apt-get install jq -y
     - name: Google Chat Notification
       env:
-          TITLE: ${{ github.event.issue.title }}
+        TITLE: ${{ github.event.issue.title }}
       run: |
-          PAYLOAD=$(jq -n --arg title "$TITLE" --arg login "${{ github.event.issue.user.login }}" --argjson labels "${{ github.event.issue.labels }}" --argjson assignees "${{ github.event.issue.assignees }}" '
-          {
-          cards: [
+        PAYLOAD=$(cat <<EOF
+        {
+          "cards": [
             {
-              header: {
-                title: "Issue Tracker",
-                subtitle: "Issue No: #\($number)"
+              "header": {
+                "title": "Issue Tracker",
+                "subtitle": "Issue No: #${{ github.event.issue.number }}"
               },
-              sections: [
+              "sections": [
                 {
-                  widgets: [
+                  "widgets": [
                     {
-                      keyValue: {
-                        topLabel: "Creator",
-                        content: $login
+                      "keyValue": {
+                        "topLabel": "Creator",
+                        "content": "${{ github.event.issue.user.login }}"
                       }
                     },
                     {
-                      keyValue: {
-                        topLabel: "Title",
-                        content: $title
+                      "keyValue": {
+                        "topLabel": "Title",
+                        "content": "${TITLE}"
                       }
                     },
                     {
-                      keyValue: {
-                        topLabel: "Assigned Labels",
-                        content: ($labels | map("- " + .name) | join("\n"))
+                      "keyValue": {
+                        "topLabel": "Assigned Labels",
+                        "content": "- ${{ join(github.event.issue.labels.*.name) }}"
                       }
                     },
                     {
-                      keyValue: {
-                        topLabel: "Assignees",
-                        content: ($assignees | map("- " + .login) | join("\n"))
+                      "keyValue": {
+                        "topLabel": "Assignees",
+                        "content": "- ${{ join(github.event.issue.assignees.*.login) }}"
                       }
                     },
                     {
-                      buttons: [
+                      "buttons": [
                         {
-                          textButton: {
-                            text: "OPEN ISSUE",
-                            onClick: {
-                              openLink: {
-                                url: $html_url
+                          "textButton": {
+                            "text": "OPEN ISSUE",
+                            "onClick": {
+                              "openLink": {
+                                "url": "${{ github.event.issue.html_url }}"
                               }
                             }
                           }
@@ -76,10 +74,11 @@ jobs:
               ]
             }
           ]
-          }')
-  
-          curl --location --request POST '${{ secrets.INTERNAL_SUPPORT_ALERT }}' \
-            --header 'Content-Type: application/json' \
-            --data-raw "$PAYLOAD"
-                    ]
-                }'
+        }
+        EOF
+        )
+        
+        curl --location --request POST '${{ secrets.INTERNAL_SUPPORT_ALERT }}' \
+          --header 'Content-Type: application/json' \
+          --data-raw "${PAYLOAD}"
+
