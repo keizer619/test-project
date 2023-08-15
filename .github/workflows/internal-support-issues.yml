@@ -21,7 +21,7 @@ jobs:
           TITLE: ${{ github.event.issue.title }}
       run: |
           TITLE=${TITLE//\'/\u0027}
-          TITLE="${TITLE//\"/}"
+          TITLE="${TITLE//\"/\u0022}"
           curl --location --request POST '${{ secrets.INTERNAL_SUPPORT_ALERT }}' \
           --header 'Content-Type: application/json' \
           --data-raw '{
